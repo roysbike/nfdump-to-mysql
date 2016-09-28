@@ -1,0 +1,33 @@
+#!/bin/sh
+
+
+#nfcapd="/usr/bin/nfcapd"
+sfcapd="/usr/local/bin/sfcapd"
+listen_ip="172.29.0.13"
+rotation="60" 
+port="6343"
+dir="/mnt/ramdisk"
+
+
+echo -n 'NFCAPD Capture netflow'
+echo
+
+case "$1" in
+start)
+    #sfcapd -w -l $dir -t 60 -p6343  -x 'echo HELLO'
+        $sfcapd -w -l $dir -t 60 -D  -x  '/opt/scripts/nfdump/sfdump2mysql %d/%f' -P /var/run/sfcapd.pid
+        /bin/echo "Start Collector in $now2"
+        ;;
+stop)
+
+killall sfcapd
+        ;;
+*)
+        echo "Usage: `basename $0` {start|stop}" >&2
+        exit 64
+        ;;
+esac
+
+exit 0
+
+

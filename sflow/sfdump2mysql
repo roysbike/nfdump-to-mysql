@@ -1,0 +1,32 @@
+#!/bin/sh
+
+#DB mysql connect
+login="nfdump"
+pass="password"
+db="netflow"
+table="nfdump"
+
+dir="/mnt/ramdisk"
+now=`/bin/date "+%F %H:%M:%S"`
+nfdump="/usr/local/bin/nfdump"
+
+#export CSV to file
+/bin/echo "$now Start Export to CSV" >> /var/log/nfdump-export-csv.log
+$nfdump -N -q -R $1 -o pipe | /bin/sed 's/|/ /g' | /usr/bin/awk '{print $2","$10","$11","$15","$16","$24}' >> $1.csv
+now2=`/bin/date "+%F %H:%M:%S"`
+/bin/echo "$now2 Stop" >> /var/log/nfdump-export-csv.log
+
+
+#export file CSV to MYSQL
+now2=`/bin/date "+%F %H:%M:%S"`
+/bin/echo "$now2 Export to MySQL" >> /var/log/nfdump-export-mysql.log
+/usr/bin/mysql -u$login -p$pass --local-infile=1  -e "LOAD DATA LOCAL INFILE '$1.csv' INTO TABLE $db.$table FIELDS TERMINATED BY ',' ENCLOSED BY ''  LINES TERMINATED BY '\n' (UNIXSEC,SRCADDR,SRCPORT,DSTADDR,DSTPORT,DOCTETS);"
+
+now2=`/bin/date "+%F %H:%M:%S"`
+/bin/echo "$now2 Stop Export to MySQL" >> /var/log/nfdump-export-mysql.log
+
+/bin/rm $1.csv
+#/usr/bin/nfexpire -e $dir -t 1H > /dev/null
+/bin/rm $1
+
+

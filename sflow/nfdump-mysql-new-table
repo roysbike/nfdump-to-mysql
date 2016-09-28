@@ -1,0 +1,20 @@
+#!/bin/sh
+
+#DB connect mysql. GRANT all
+user="nfdump"
+pass="password"
+db="netflow"
+table="nfdump"
+workdir="/opt/scripts/nfdump"
+
+now=`date --date='-1 day' +%Y%m%d`
+
+#RENAME TABLE
+/bin/echo "USE $db; LOCK TABLES $table WRITE; UNLOCK TABLES; RENAME TABLE $db.$table TO $table$now" | /usr/bin/mysql  -u$user -p$pass
+
+#CREATE NEW TABLE
+/usr/bin/mysql -u$user -p$pass $db < $workdir/nfdump.sql >> /dev/null
+
+exit 0
+
+
